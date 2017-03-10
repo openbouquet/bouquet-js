@@ -1,0 +1,23 @@
+<html>
+<head>
+<script src='../dist/bouquet.js'></script>
+</head>
+<body>
+	access_token :
+	<span id='root'> </span>
+	<script>
+	   var bouquet = new Bouquet({
+	       url : '//demo.openbouquet.io/release/v4.2',
+	       clientId : 'api-key-client',
+	   });
+	   var apiKey = 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhcGkta2V5LWNsaWVudCIsInN1YiI6IjU4YWM1Y2FiMTVhYmNjMTJiYjUwYTU0MCIsInVzZXJFbWFpbCI6ImRlbW9AbG9jYWxob3N0LmNvbSIsImN1c3RvbWVySWQiOiI1OGFjNTNjMDE1YWJjYzEyYmI1MGE0NWIiLCJqdGkiOiJnTmF3dHdiZzRaYXRtQ1JXVVRQYnFnIiwiZXhwIjo0NjQxNTM0NTE5LCJpYXQiOjE0ODc5MzQ1MTksIm5iZiI6MTQ4NzkzNDM5OX0.g5f1DHxESj9PvC5meP8UKXmcZzbGZIiW-qwZ7mNAZWTlMlaAdIn1EBOZzB9oAwHzQxS0qez0iRDac874YCmnHrwYI8kgVoJQvbbJedKIJjfP_V_ZPvMiAfsX0wqeCmqG4_uXZoAh_sumvyDkKGfzutAfpR3DCVkWTqfYZ-iornkyYwH89Yqe_yBNQPO4pXpf3Dg68BlruZqc-tiow3ytynyxuEYEOPYIuyRL-fLpjNstRGa_gXIQYBx9v1yVGlZsQFVviJ5PMbCgIduM36g5leA_IXprw46KxjH_snbnEvAHypZCwhNaJJxlLGBEWTMnFKqytR68CGURskRM2D0VPQ';
+	   bouquet.requestToken(apiKey)
+	   .then(function(res) {
+	       document.getElementById('root').innerHTML = res.access_token;
+	   })
+	   .catch(function(err) {
+	       document.getElementById('root').innerHTML = err;
+	   });
+	</script>
+</body>
+</html>
