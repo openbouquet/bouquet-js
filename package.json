@@ -1,6 +1,6 @@
 {
   "name": "bouquet-js",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Universal Javascript library for Bouquet API",
   "main": "lib/bouquet.js",
   "scripts": {
