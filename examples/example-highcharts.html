@@ -1,0 +1,163 @@
+<html>
+
+<head>
+<script
+	src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://use.fontawesome.com/1ea8d4d975.js"></script>
+
+<script src='../dist/bouquet.js'></script>
+
+<style>
+body {
+	margin: 5px;
+}
+
+* {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color: #666;
+}
+
+#container {
+	min-width: 310px;
+	width: 100%;
+	margin: 0 auto
+}
+</style>
+</html>
+</head>
+<body>
+
+	<h1>
+		<a href="https://openbouquet.io/bouquet-demo-ob" target="_parent">Bouquet API</a> demo using HighCharts.js
+	</h1>
+
+	<div id="status"></div>
+	<div id="apiUrl">&nbsp;</div>
+	<hr>
+	<div id="container" style="height: 400px;"></div>
+	<hr>
+
+
+	<script>
+        /*
+         demo using Bouquet analytics API with HighCharts to display data distribution by event category.
+         */
+
+        var bouquet = new Bouquet({
+            url : '//demo.openbouquet.io/release/v4.2',
+            clientId : 'api-key-client',
+            apiKey : 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhcGkta2V5LWNsaWVudCIsInN1YiI6IjU4YWM1Y2FiMTVhYmNjMTJiYjUwYTU0MCIsInVzZXJFbWFpbCI6ImRlbW9AbG9jYWxob3N0LmNvbSIsImN1c3RvbWVySWQiOiI1OGFjNTNjMDE1YWJjYzEyYmI1MGE0NWIiLCJqdGkiOiJnTmF3dHdiZzRaYXRtQ1JXVVRQYnFnIiwiZXhwIjo0NjQxNTM0NTE5LCJpYXQiOjE0ODc5MzQ1MTksIm5iZiI6MTQ4NzkzNDM5OX0.g5f1DHxESj9PvC5meP8UKXmcZzbGZIiW-qwZ7mNAZWTlMlaAdIn1EBOZzB9oAwHzQxS0qez0iRDac874YCmnHrwYI8kgVoJQvbbJedKIJjfP_V_ZPvMiAfsX0wqeCmqG4_uXZoAh_sumvyDkKGfzutAfpR3DCVkWTqfYZ-iornkyYwH89Yqe_yBNQPO4pXpf3Dg68BlruZqc-tiow3ytynyxuEYEOPYIuyRL-fLpjNstRGa_gXIQYBx9v1yVGlZsQFVviJ5PMbCgIduM36g5leA_IXprw46KxjH_snbnEvAHypZCwhNaJJxlLGBEWTMnFKqytR68CGURskRM2D0VPQ'
+        });
+        
+        // running query
+        $('#apiUrl').text('requesting data').append($('<i class="fa fa-refresh fa-spin fa-fw"></i>'));
+        
+        bouquet.request("/analytics/@'5899bc6715abcc6bed69d766'.@bookmark:'58a5dc6b45d778b2bdb231c9'/query?period=%27Saletime%27&timeframe=2008-01-01&timeframe=2008-03-31&groupBy=to_date%28__PERIOD%29+as+%27period%27&groupBy=%27Event+%3E++Category+%3E++Catname%27+as+%27series%27&metrics=%27Total+quantity+sold%27&orderBy=asc%28to_date%28__PERIOD%29%29&limit=1000&offset=0&beyondLimit=0&envelope=data&data=RECORDS")
+       .then(function(res) {
+           displayChart(transformData(res));
+       })
+       .catch(function(err) {
+           $('#apiUrl').text('request failed: '+err+"("+err.code+")")
+       });
+
+        // HighCharts display function
+        function displayChart(data) {
+            $('#apiUrl')
+            .text('')
+            .append($('<a href="'+apiUrl+'&style=HTML" target="_blank">View data in Bouquet API explorer&nbsp;<i class="fa fa-external-link"></i></a>'));
+            
+            if (!Highcharts.theme) {
+                Highcharts.setOptions({
+                    colors : [ '#00505b', '#00aa9e', '#c74150', '#ff7c46',
+                            '#ffcb4d' ]
+                });
+            }
+
+            Highcharts.chart('container', {
+                chart : {
+                    type : 'area'
+                },
+
+                title : {
+                    text : 'TIckets sold by event category'
+                },
+
+                subtitle : {
+                    text : 'Tickit database'
+                },
+                xAxis : {
+                    type : 'datetime',
+                    units : [ [ 'month' ] ]
+                },
+                yAxis : {
+                    title : {
+                        text : 'Total quantity sold'
+                    }
+                },
+                tooltip : {
+                    split : true
+                },
+                legend : {
+                    layout : 'vertical',
+                    align : 'right',
+                    verticalAlign : 'middle',
+                    name : 'event category'
+                },
+                plotOptions : {
+                    area : {
+                        stacking : 'normal',
+                        lineColor : '#444444',
+                        lineWidth : 1,
+                        marker : {
+                            enabled : false,
+                            symbol : 'circle',
+                            radius : 2,
+                            states : {
+                                hover : {
+                                    enabled : true
+                                }
+                            }
+                        }
+                    }
+                },
+
+                series : data
+
+            });
+        }
+
+        // convert table data to HighCharts series
+        function transformData(data) {
+            var lookup = [];
+            data.forEach(function(record) {
+                if (lookup[record.series] === undefined) {
+                    lookup[record.series] = {
+                        name : record.series,
+                        data : [],
+                        total : 0
+                    };
+                }
+                var date = Date.parse(record.period);
+                lookup[record.series].data.push({
+                    x : date,
+                    y : record["Total quantity sold"]
+                });
+                lookup[record.series].total += record["Total quantity sold"];
+            });
+            var series = [];
+            for ( var key in lookup) {
+                series.push(lookup[key]);
+            }
+            ;
+            series.sort(function(a, b) {
+                return a.total - b.total
+            });
+            return series;
+        }
+
+
+    </script>
+
+</body>
