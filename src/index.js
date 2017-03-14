@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright © Squid Solutions, 2017
  *
  * This file is part of Open Bouquet software.
@@ -20,10 +20,11 @@
  * license, then it supersedes and replaces any other agreement between
  * you and Squid Solutions (above licenses and LICENSE.txt included).
  * See http://www.squidsolutions.com/EnterpriseBouquet/
- *******************************************************************************/
+ */
 
 import popsicle from 'popsicle';
 import URI from 'urijs';
+import pack from '../package.json';
 
 export default class Bouquet {
     constructor( options ) {
@@ -34,61 +35,87 @@ export default class Bouquet {
         if ( !options.clientId ) {
             throw new Error( 'Parameter "clientId" is required' );
         }
-        if (( !options.apiKey ) && ( !options.access_token ) ){
+        if ( ( !options.apiKey ) && ( !options.access_token ) ) {
             throw new Error( 'Either "apiKey" or "access_token" paremeter is required' );
         }
         this.config = options;
-        this.uri = new URI(options.url);
+        this.uri = new URI( options.url );
     }
     
+    getVersion() {
+        return pack.version;
+    }
+
     // request a new OAuth2 token
-    requestToken(callback) {
+    requestToken( callback ) {
         return this.doRequest( null, '/rs/token', callback );
     }
-    
+
     doRequest( access_token, query, callback ) {
         let url = this.uri.clone();
-        let queryURI = new URI(query);
-        // set the path
-        url.path(URI.joinPaths(this.uri,queryURI.path()));
-        // set the query
-        let parsedQuery = URI.parseQuery(queryURI.query());
-        for (var q in parsedQuery) {
-            url.setQuery(q, parsedQuery[q]);
-        }
-        if (access_token) {
-            url.setQuery('access_token', access_token);
+        let path, data;
+        if ( typeof query === 'object' ) {
+            path = query.path;
+            data = query.data;
         } else {
-            url.setQuery('assertion', this.config.apiKey);
+            path = query;
         }
-        url.setQuery('clientId', this.config.clientId);
-        const promise = popsicle.get(url.toString());
-        if (!callback) {
+        let pathURI = new URI( path );
+        // set the path
+        url.path( URI.joinPaths( this.uri, pathURI.path() ) );
+        // set the query
+        let parsedQuery = URI.parseQuery( pathURI.query() );
+        for ( var q in parsedQuery ) {
+            url.setQuery( q, parsedQuery[q] );
+        }
+        if ( access_token ) {
+            url.setQuery( 'access_token', access_token );
+        } else {
+            url.setQuery( 'assertion', this.config.apiKey );
+        }
+        url.setQuery( 'clientId', this.config.clientId );
+        let promise;
+        if ( data ) {
+            // POST 
+            promise = popsicle.post( {
+                url: url.toString(),
+                body: data
+            });
+        } else {
+            // GET
+            promise = popsicle.get( url.toString() );
+        }
+        if ( !callback ) {
             // return the token as a promise
-            return promise.then(function(res) {
+            return promise.then( function( res ) {
                 return res.body;
             });
         } else {
             // return the token as callback argument
             promise.then( function( res ) {
-                callback(null, res.body);
+                callback( null, res.body );
             })
-            .catch( function( err ) {
-                callback(err);
-            });
+                .catch( function( err ) {
+                    callback( err );
+                });
         }
     }
-    
-    // perform a GET request
+
+    /* 
+     * Perform an API request.
+     * @param query a query defined either by 
+     *  - a single string such as '/path?query'
+     *  - a JSON object such as : { path : '', data : {} }
+     */
     request( query, callback ) {
-        if (this.config.token) {
+        if ( this.config.token ) {
             return this.doRequest( this.config.access_token, query, callback );
         } else {
             let me = this;
             return this.requestToken().then(
-                function(res) {
+                function( res ) {
                     me.config.token = res.access_token;
-                    return me.doRequest(me.config.token, query, callback );
+                    return me.doRequest( me.config.token, query, callback );
                 }
             );
         }

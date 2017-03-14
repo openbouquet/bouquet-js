@@ -6661,7 +6661,9 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*******************************************************************************
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * Copyright © Squid Solutions, 2017
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       *
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * This file is part of Open Bouquet software.
@@ -6683,7 +6685,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * license, then it supersedes and replaces any other agreement between
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * you and Squid Solutions (above licenses and LICENSE.txt included).
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * See http://www.squidsolutions.com/EnterpriseBouquet/
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *******************************************************************************/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
 
 var _popsicle = __webpack_require__(15);
 
@@ -6692,6 +6694,10 @@ var _popsicle2 = _interopRequireDefault(_popsicle);
 var _urijs = __webpack_require__(16);
 
 var _urijs2 = _interopRequireDefault(_urijs);
+
+var _package = __webpack_require__(32);
+
+var _package2 = _interopRequireDefault(_package);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -6715,10 +6721,15 @@ var Bouquet = function () {
         this.uri = new _urijs2.default(options.url);
     }
 
-    // request a new OAuth2 token
-
-
     _createClass(Bouquet, [{
+        key: 'getVersion',
+        value: function getVersion() {
+            return _package2.default.version;
+        }
+
+        // request a new OAuth2 token
+
+    }, {
         key: 'requestToken',
         value: function requestToken(callback) {
             return this.doRequest(null, '/rs/token', callback);
@@ -6727,11 +6738,19 @@ var Bouquet = function () {
         key: 'doRequest',
         value: function doRequest(access_token, query, callback) {
             var url = this.uri.clone();
-            var queryURI = new _urijs2.default(query);
+            var path = void 0,
+                data = void 0;
+            if ((typeof query === 'undefined' ? 'undefined' : _typeof(query)) === 'object') {
+                path = query.path;
+                data = query.data;
+            } else {
+                path = query;
+            }
+            var pathURI = new _urijs2.default(path);
             // set the path
-            url.path(_urijs2.default.joinPaths(this.uri, queryURI.path()));
+            url.path(_urijs2.default.joinPaths(this.uri, pathURI.path()));
             // set the query
-            var parsedQuery = _urijs2.default.parseQuery(queryURI.query());
+            var parsedQuery = _urijs2.default.parseQuery(pathURI.query());
             for (var q in parsedQuery) {
                 url.setQuery(q, parsedQuery[q]);
             }
@@ -6741,7 +6760,17 @@ var Bouquet = function () {
                 url.setQuery('assertion', this.config.apiKey);
             }
             url.setQuery('clientId', this.config.clientId);
-            var promise = _popsicle2.default.get(url.toString());
+            var promise = void 0;
+            if (data) {
+                // POST 
+                promise = _popsicle2.default.post({
+                    url: url.toString(),
+                    body: data
+                });
+            } else {
+                // GET
+                promise = _popsicle2.default.get(url.toString());
+            }
             if (!callback) {
                 // return the token as a promise
                 return promise.then(function (res) {
@@ -6757,7 +6786,12 @@ var Bouquet = function () {
             }
         }
 
-        // perform a GET request
+        /* 
+         * Perform an API request.
+         * @param query a query defined either by 
+         *  - a single string such as '/path?query'
+         *  - a JSON object such as : { path : '', data : {} }
+         */
 
     }, {
         key: 'request',
@@ -6779,6 +6813,56 @@ var Bouquet = function () {
 
 exports.default = Bouquet;
 module.exports = exports['default'];
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports) {
+
+module.exports = {
+	"name": "bouquet-js",
+	"version": "1.1.0",
+	"description": "Universal Javascript library for Bouquet API",
+	"main": "dist/bouquet.js",
+	"scripts": {
+		"build": "webpack --env build",
+		"dev": "webpack --progress --colors --watch --env dev",
+		"test": "mocha --compilers js:babel-core/register --colors ./test/*.spec.js",
+		"test:watch": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"
+	},
+	"dependencies": {
+		"popsicle": "^1.4.0",
+		"urijs": "^1.18.9"
+	},
+	"devDependencies": {
+		"babel": "6.5.2",
+		"babel-core": "6.22.1",
+		"babel-eslint": "7.1.1",
+		"babel-loader": "6.2.10",
+		"babel-plugin-add-module-exports": "0.1.2",
+		"babel-preset-es2015": "6.22.0",
+		"chai": "3.4.1",
+		"eslint": "1.7.2",
+		"eslint-loader": "1.6.1",
+		"eslint-config-airbnb": "0.0.8",
+		"mocha": "2.3.4",
+		"webpack": "2.2.1",
+		"yargs": "6.6.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/openbouquet/bouquet-js.git"
+	},
+	"keywords": [
+		"webpack",
+		"es6",
+		"bouquet",
+		"library",
+		"universal",
+		"umd",
+		"commonjs"
+	],
+	"homepage": "https://github.com/openbouquet/"
+};
 
 /***/ })
 /******/ ]);
