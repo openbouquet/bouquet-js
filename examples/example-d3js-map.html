@@ -148,24 +148,6 @@ $(function() {
 	    var topojson = window.topojson;
 	    var d3 = window.d3;
 	    var _ = window._;
-	    var data = generateData();
-	
-	    function generateData() {
-	        var states = ['DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'AK', 'CA', 'CO', 'AZ', 'AR', 'AL', 'CT'];
-	
-	        function dataArray() {
-	            var data = [];
-	            _.times(states.length, function (n) {
-	                data.push({
-	                    code: states[n],
-	                    value: _.random(1, 98.5)
-	                });
-	            });
-	            return data;
-	        }
-	
-	        return dataArray();
-	    }
 	
 	    var f = d3.format('.1f');
 	
