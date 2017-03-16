@@ -121,11 +121,10 @@ export default class Bouquet {
         if ( this.config.token ) {
             return this._doRequest( this.config.access_token, query, callback );
         } else {
-            let me = this;
             return this.requestToken().then(
-                function( res ) {
-                    me.config.token = res.access_token;
-                    return me._doRequest( me.config.token, query, callback );
+                (res) => {
+                    this.config.token = res.access_token;
+                    return this._doRequest( this.config.token, query, callback );
                 }
             );
         }
@@ -145,11 +144,10 @@ export default class Bouquet {
               });
             
         } else {
-            let me = this;
             return this.requestToken().then(
-                function( res ) {
-                    me.config.token = res.access_token;
-                    return me._buildRequestUrl( me.config.token, query, callback );
+                (res) => {
+                    this.config.token = res.access_token;
+                    return this._buildRequestUrl( this.config.token, query, callback );
                 }
             );
         }
