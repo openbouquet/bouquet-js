@@ -10,6 +10,7 @@
     "test:watch": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"
   },
   "dependencies": {
+    "es6-promise": "^4.1.0",
     "popsicle": "^1.4.0",
     "urijs": "^1.18.9"
   },

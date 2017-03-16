@@ -26,6 +26,8 @@ import popsicle from 'popsicle';
 import URI from 'urijs';
 import pack from '../package.json';
 
+require('es6-promise').polyfill();
+
 export default class Bouquet {
     constructor( options ) {
         options = options || {};
@@ -42,21 +44,11 @@ export default class Bouquet {
         this.uri = new URI( options.url );
     }
     
-    getVersion() {
-        return pack.version;
-    }
-
-    // request a new OAuth2 token
-    requestToken( callback ) {
-        return this.doRequest( null, '/rs/token', callback );
-    }
-
-    doRequest( access_token, query, callback ) {
+    _buildRequestUrl( access_token, query) {
         let url = this.uri.clone();
-        let path, data;
+        let path;
         if ( typeof query === 'object' ) {
             path = query.path;
-            data = query.data;
         } else {
             path = query;
         }
@@ -74,24 +66,33 @@ export default class Bouquet {
             url.setQuery( 'assertion', this.config.apiKey );
         }
         url.setQuery( 'clientId', this.config.clientId );
+        return url.toString();
+    }
+
+    _doRequest( access_token, query, callback ) {
+        let url = this._buildRequestUrl(access_token, query);
         let promise;
+        let data;
+        if ( typeof query === 'object' ) {
+            data = query.data;
+        }
         if ( data ) {
             // POST 
             promise = popsicle.post( {
-                url: url.toString(),
+                url: url,
                 body: data
             });
         } else {
             // GET
-            promise = popsicle.get( url.toString() );
+            promise = popsicle.get(url);
         }
         if ( !callback ) {
-            // return the token as a promise
+            // return as a promise
             return promise.then( function( res ) {
                 return res.body;
             });
         } else {
-            // return the token as callback argument
+            // return as callback
             promise.then( function( res ) {
                 callback( null, res.body );
             })
@@ -99,6 +100,15 @@ export default class Bouquet {
                     callback( err );
                 });
         }
+    }
+    
+    getVersion() {
+        return pack.version;
+    }
+
+    // request a new OAuth2 token
+    requestToken( callback ) {
+        return this._doRequest( null, '/rs/token', callback );
     }
 
     /* 
@@ -109,13 +119,37 @@ export default class Bouquet {
      */
     request( query, callback ) {
         if ( this.config.token ) {
-            return this.doRequest( this.config.access_token, query, callback );
+            return this._doRequest( this.config.access_token, query, callback );
         } else {
             let me = this;
             return this.requestToken().then(
                 function( res ) {
                     me.config.token = res.access_token;
-                    return me.doRequest( me.config.token, query, callback );
+                    return me._doRequest( me.config.token, query, callback );
+                }
+            );
+        }
+    }
+    
+    /* 
+     * Get a full request URL (with token).
+     * @param query a query used to define a path - defined either by 
+     *  - a single string such as '/path?query'
+     *  - a JSON object such as : { path : '', data : {} }
+     */
+    getRequestUrl( query, callback ) {
+        if ( this.config.token ) {
+            return new Promise(function(resolve) {
+                let url = this._buildRequestUrl( this.config.access_token, query, callback );
+                resolve(url);
+              });
+            
+        } else {
+            let me = this;
+            return this.requestToken().then(
+                function( res ) {
+                    me.config.token = res.access_token;
+                    return me._buildRequestUrl( me.config.token, query, callback );
                 }
             );
         }
