@@ -26,7 +26,9 @@ Exports in a UMD format it works either in the browser or node.js
 </script>
 ```
 
-See /examples directory for more examples
+See [tutorial](doc/tutorial1) for a quick usage doc  
+See [tutorial](examples) directory for more examples
+
 
 ## Scripts
 

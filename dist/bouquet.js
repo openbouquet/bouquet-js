@@ -8028,13 +8028,14 @@ var Bouquet = function () {
     }, {
         key: 'request',
         value: function request(query, callback) {
+            var _this = this;
+
             if (this.config.token) {
                 return this._doRequest(this.config.access_token, query, callback);
             } else {
-                var me = this;
                 return this.requestToken().then(function (res) {
-                    me.config.token = res.access_token;
-                    return me._doRequest(me.config.token, query, callback);
+                    _this.config.token = res.access_token;
+                    return _this._doRequest(_this.config.token, query, callback);
                 });
             }
         }
@@ -8049,16 +8050,17 @@ var Bouquet = function () {
     }, {
         key: 'getRequestUrl',
         value: function getRequestUrl(query, callback) {
+            var _this2 = this;
+
             if (this.config.token) {
                 return new Promise(function (resolve) {
                     var url = this._buildRequestUrl(this.config.access_token, query, callback);
                     resolve(url);
                 });
             } else {
-                var me = this;
                 return this.requestToken().then(function (res) {
-                    me.config.token = res.access_token;
-                    return me._buildRequestUrl(me.config.token, query, callback);
+                    _this2.config.token = res.access_token;
+                    return _this2._buildRequestUrl(_this2.config.token, query, callback);
                 });
             }
         }
