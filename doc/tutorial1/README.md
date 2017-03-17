@@ -12,7 +12,7 @@ Including as an HTML script
 <script src="//rawgit.com/openbouquet/bouquet-js/master/dist/bouquet.min.js"></script>
 ```
 
-Including as a NPM library
+Including as a [NPM library](https://www.npmjs.com/package/bouquet-js)
 ```sh
 npm install bouquet-js
 ```
