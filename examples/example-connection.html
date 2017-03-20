@@ -3,6 +3,7 @@
 <script src='../dist/bouquet.js'></script>
 </head>
 <body>
+    <p>Simple 2-step example running an analysis from a query URI and using bouquet.js</p>
 	analysis :
 	<pre id='root'> </pre>
 	<script>
@@ -11,14 +12,29 @@
 	       clientId : 'api-key-client',
 	       apiKey : 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhcGkta2V5LWNsaWVudCIsInN1YiI6IjU4YWM1Y2FiMTVhYmNjMTJiYjUwYTU0MCIsInVzZXJFbWFpbCI6ImRlbW9AbG9jYWxob3N0LmNvbSIsImN1c3RvbWVySWQiOiI1OGFjNTNjMDE1YWJjYzEyYmI1MGE0NWIiLCJqdGkiOiJnTmF3dHdiZzRaYXRtQ1JXVVRQYnFnIiwiZXhwIjo0NjQxNTM0NTE5LCJpYXQiOjE0ODc5MzQ1MTksIm5iZiI6MTQ4NzkzNDM5OX0.g5f1DHxESj9PvC5meP8UKXmcZzbGZIiW-qwZ7mNAZWTlMlaAdIn1EBOZzB9oAwHzQxS0qez0iRDac874YCmnHrwYI8kgVoJQvbbJedKIJjfP_V_ZPvMiAfsX0wqeCmqG4_uXZoAh_sumvyDkKGfzutAfpR3DCVkWTqfYZ-iornkyYwH89Yqe_yBNQPO4pXpf3Dg68BlruZqc-tiow3ytynyxuEYEOPYIuyRL-fLpjNstRGa_gXIQYBx9v1yVGlZsQFVviJ5PMbCgIduM36g5leA_IXprw46KxjH_snbnEvAHypZCwhNaJJxlLGBEWTMnFKqytR68CGURskRM2D0VPQ'
 	   });
-	   document.getElementById('root').innerHTML = "RUNNING...";
-	   bouquet.request("/analytics/@'5899bc6715abcc6bed69d766'.@bookmark:'58a5dc6b45d778b2bdb231c9'/query?envelope=ALL&data=TABLE")
-	   .then(function(res) {
-	       document.getElementById('root').innerHTML = JSON.stringify(res.result, undefined, 4);
-	   })
-	   .catch(function(err) {
-	       document.getElementById('root').innerHTML = err;
-	   });
+	   
+	   document.getElementById('root').innerHTML = "Connecting...";
+	   // step 1
+	   bouquet.request("/rs/user")
+       .then(function(user) {
+           document.getElementById('root').innerHTML = "Connected";
+            update();
+       })
+       .catch(function(err) {
+           document.getElementById('root').innerHTML = "Failed to connect: "+err;
+       });
+	  
+	  // step 2
+	  function update() {
+		   document.getElementById('root').innerHTML = "Running...";
+		   bouquet.request("/analytics/@'5899bc6715abcc6bed69d766'.@bookmark:'58a5dc6b45d778b2bdb231c9'/query?envelope=ALL&data=TABLE")
+		   .then(function(res) {
+		       document.getElementById('root').innerHTML = JSON.stringify(res.result, undefined, 4);
+		   })
+		   .catch(function(err) {
+		       document.getElementById('root').innerHTML = err;
+		   });
+	  }
 	</script>
 </body>
 </html>

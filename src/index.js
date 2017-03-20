@@ -118,13 +118,13 @@ export default class Bouquet {
      *  - a JSON object such as : { path : '', data : {} }
      */
     request( query, callback ) {
-        if ( this.config.token ) {
+        if ( this.config.access_token ) {
             return this._doRequest( this.config.access_token, query, callback );
         } else {
             return this.requestToken().then(
                 (res) => {
-                    this.config.token = res.access_token;
-                    return this._doRequest( this.config.token, query, callback );
+                    this.config.access_token = res.access_token;
+                    return this._doRequest( this.config.access_token, query, callback );
                 }
             );
         }
@@ -137,7 +137,7 @@ export default class Bouquet {
      *  - a JSON object such as : { path : '', data : {} }
      */
     getRequestUrl( query, callback ) {
-        if ( this.config.token ) {
+        if ( this.config.access_token ) {
             return new Promise(function(resolve) {
                 let url = this._buildRequestUrl( this.config.access_token, query, callback );
                 resolve(url);
@@ -146,8 +146,8 @@ export default class Bouquet {
         } else {
             return this.requestToken().then(
                 (res) => {
-                    this.config.token = res.access_token;
-                    return this._buildRequestUrl( this.config.token, query, callback );
+                    this.config.access_token = res.access_token;
+                    return this._buildRequestUrl( this.config.access_token, query, callback );
                 }
             );
         }

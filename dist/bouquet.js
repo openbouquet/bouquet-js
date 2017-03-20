@@ -5182,7 +5182,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 module.exports = {
 	"name": "bouquet-js",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Universal Javascript library for Bouquet API",
 	"main": "dist/bouquet.js",
 	"scripts": {
@@ -8030,12 +8030,12 @@ var Bouquet = function () {
         value: function request(query, callback) {
             var _this = this;
 
-            if (this.config.token) {
+            if (this.config.access_token) {
                 return this._doRequest(this.config.access_token, query, callback);
             } else {
                 return this.requestToken().then(function (res) {
-                    _this.config.token = res.access_token;
-                    return _this._doRequest(_this.config.token, query, callback);
+                    _this.config.access_token = res.access_token;
+                    return _this._doRequest(_this.config.access_token, query, callback);
                 });
             }
         }
@@ -8052,15 +8052,15 @@ var Bouquet = function () {
         value: function getRequestUrl(query, callback) {
             var _this2 = this;
 
-            if (this.config.token) {
+            if (this.config.access_token) {
                 return new Promise(function (resolve) {
                     var url = this._buildRequestUrl(this.config.access_token, query, callback);
                     resolve(url);
                 });
             } else {
                 return this.requestToken().then(function (res) {
-                    _this2.config.token = res.access_token;
-                    return _this2._buildRequestUrl(_this2.config.token, query, callback);
+                    _this2.config.access_token = res.access_token;
+                    return _this2._buildRequestUrl(_this2.config.access_token, query, callback);
                 });
             }
         }
