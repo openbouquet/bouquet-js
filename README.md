@@ -26,8 +26,10 @@ Exports in a UMD format it works either in the browser or node.js
 </script>
 ```
 
-See this [tutorial](doc/tutorial1) for a quick usage doc  
-See the [examples directory](examples) directory for more examples
+### Resources
+
+Read the full [tutorial](https://docs.openbouquet.io/docs/tutorials)  
+See the [examples directory](examples) directory for some sample code  
 
 
 ## Scripts
