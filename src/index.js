@@ -96,9 +96,9 @@ export default class Bouquet {
             promise.then( function( res ) {
                 callback( null, res.body );
             })
-                .catch( function( err ) {
-                    callback( err );
-                });
+            .catch( function( err ) {
+                callback( err );
+            });
         }
     }
     
@@ -138,11 +138,10 @@ export default class Bouquet {
      */
     getRequestUrl( query, callback ) {
         if ( this.config.access_token ) {
-            return new Promise(function(resolve) {
+            return new Promise((resolve) => {
                 let url = this._buildRequestUrl( this.config.access_token, query, callback );
                 resolve(url);
-              });
-            
+            });
         } else {
             return this.requestToken().then(
                 (res) => {

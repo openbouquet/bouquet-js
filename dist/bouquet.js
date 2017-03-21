@@ -5182,7 +5182,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 module.exports = {
 	"name": "bouquet-js",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"description": "Universal Javascript library for Bouquet API",
 	"main": "dist/bouquet.js",
 	"scripts": {
@@ -8054,7 +8054,7 @@ var Bouquet = function () {
 
             if (this.config.access_token) {
                 return new Promise(function (resolve) {
-                    var url = this._buildRequestUrl(this.config.access_token, query, callback);
+                    var url = _this2._buildRequestUrl(_this2.config.access_token, query, callback);
                     resolve(url);
                 });
             } else {
