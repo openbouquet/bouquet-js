@@ -7443,8 +7443,10 @@ var Bouquet = function () {
         value: function _buildRequestUrl(access_token, query) {
             var url = this.uri.clone();
             var path = void 0;
+            var data = void 0;
             if ((typeof query === 'undefined' ? 'undefined' : _typeof(query)) === 'object') {
                 path = query.path;
+                data = query.data;
             } else {
                 path = query;
             }
@@ -7455,6 +7457,10 @@ var Bouquet = function () {
             var parsedQuery = _urijs2.default.parseQuery(pathURI.query());
             for (var q in parsedQuery) {
                 url.setQuery(q, parsedQuery[q]);
+            }
+            // set the data
+            if (data) {
+                url.addQuery(data);
             }
             if (access_token) {
                 url.setQuery('access_token', access_token);
@@ -7467,20 +7473,22 @@ var Bouquet = function () {
     }, {
         key: '_doRequest',
         value: function _doRequest(access_token, query, callback) {
-            var url = this._buildRequestUrl(access_token, query);
+            var url = void 0;
             var promise = void 0;
             var data = void 0;
             if ((typeof query === 'undefined' ? 'undefined' : _typeof(query)) === 'object') {
                 data = query.data;
             }
             if (data) {
-                // POST 
+                // POST
+                url = this._buildRequestUrl(access_token, { path: query.path });
                 promise = popsicle.post({
                     url: url,
                     body: data
                 });
             } else {
                 // GET
+                url = this._buildRequestUrl(access_token, query);
                 promise = popsicle.get(url);
             }
             promise = promise.use(popsicle.plugins.parse('json'));
@@ -7536,7 +7544,7 @@ var Bouquet = function () {
         }
 
         /* 
-         * Get a full request URL (with token).
+         * Get a full request URL with token and query parameter serialized from and query object passed-in.
          * @param query a query used to define a path - defined either by 
          *  - a single string such as '/path?query'
          *  - a JSON object such as : { path : '', data : {} }
