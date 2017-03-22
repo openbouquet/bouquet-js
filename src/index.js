@@ -22,11 +22,11 @@
  * See http://www.squidsolutions.com/EnterpriseBouquet/
  */
 
-import popsicle from 'popsicle';
 import URI from 'urijs';
 import pack from '../package.json';
-
 require('es6-promise').polyfill();
+require('es6-object-assign').polyfill();
+const popsicle = require('popsicle');
 
 export default class Bouquet {
     constructor( options ) {
@@ -86,6 +86,8 @@ export default class Bouquet {
             // GET
             promise = popsicle.get(url);
         }
+        promise = promise.use(popsicle.plugins.parse('json'));
+        
         if ( !callback ) {
             // return as a promise
             return promise.then( function( res ) {
