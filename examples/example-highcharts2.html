@@ -1,0 +1,335 @@
+<html>
+
+<head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://use.fontawesome.com/1ea8d4d975.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+<script src='https://cdn.rawgit.com/openbouquet/bouquet-js/v1.4.0/dist/bouquet.js'></script>
+
+<style>
+
+body {
+    margin: 5px;
+}
+
+#script-body {
+    border: 1px solid #aaa;
+    padding: 3px;
+}
+
+#timeframe {
+        font-weight: bold;
+        color: orange;
+}
+
+.header2 {
+    font-weight: bold;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#code {
+    height: 600px;
+    overflow: auto;
+    background: #fff;
+    border: none;
+}
+#sql, #viz, #json {
+    height: 200px;
+    max-height: 200px;
+    overflow: auto;
+    background: #eee;
+    border: none;
+}
+
+
+
+</style>
+
+
+</html>
+</head>
+<body>
+
+    <div class="container-fluid">
+		<div class="row">
+			<div class="col-md-6" class="prettyprint">
+				<div id="script-header">
+                   <span class="header2">Script</span>
+                </div>
+                <div id="script-body">
+                <form class="form-inline">
+  <div class="form-group">
+    <select class="form-control" id="time-selector">
+      <option value="['2008-01-01','2008-12-31']" selected="selected">Year 2008</option>
+      <option value="[__CURRENT_MONTH]">Current month</option>
+    </select>
+  </div>
+  <a id="run" class="btn btn-success"><i class="fa fa-play"></i> run</a>
+</form>
+				<pre class="prettyprint" id="code">
+var query = {
+    path : "/analytics/@'5899bc6715abcc6bed69d766'.@bookmark:'58a5dc6b45d778b2bdb231c9'/query",
+    data : {
+        timeframe: <span id="timeframe">["2008-01-01","2008-12-31"]</span>,
+        domain: "'Sales'",
+        groupBy: [
+        "MONTHLY('Saletime') as 'saletime'"
+        ],
+        metrics: [
+        "'Total quantity sold'",
+        "'Total available tickets'-'Total quantity sold' as 'Remaining tickets'"
+        ],
+        orderBy: [
+        "desc('Total quantity sold')",
+        "DESC('% sold')"
+        ],
+        limit: 1000
+    }
+}
+
+var bouquet = new Bouquet({
+    url : '//demo.openbouquet.io/release/v4.2',
+    clientId : 'api-key-client',
+    apiKey : 'eyJhbGciOiJSUzI1...ytR68CGURskRM2D0VPQ'
+});
+
+bouquet.request(query, {data : 'SQL'}).then(function(response) {
+    displaySQL(response);
+});
+
+bouquet.request(query).then(function(response) {
+    displayJSON(response);
+});
+
+bouquet.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(response) {
+    displayDataViz(response);
+});
+	           </pre>
+	           </div>
+			</div>
+			<div class="col-md-6">
+                <div class="row">
+                    <div id="sql-header">
+					<span class="header2">SQL</span> <i class="fa fa-refresh fa-spin fa-fw hidden"></i> <span class="status"></span>
+					</div>
+					<pre class="prettyprint" id="sql">
+					</pre>
+				</div>
+				<div class="row">
+					<div id="json-header">
+                    <span class="header2">JSON</span> <i class="fa fa-refresh fa-spin fa-fw hidden"></i> <span class="status"></span>
+                    </div>
+					<pre class="prettyprint" id="json">
+					</pre>
+				</div>
+				<div class="row">
+					<div id="viz-header">
+                    <span class="header2">Chart</span> <i class="fa fa-refresh fa-spin fa-fw hidden"></i> <span class="status"></span>
+                    </div>
+					<div id="viz">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<script>
+        /*
+         demo using Bouquet analytics API with HighCharts to display data distribution by event category.
+         */
+         
+         var setStatus = function(id, computing, message) {
+            if (computing === true) {
+                $("#"+id+"-header"+" .status").html(message);
+                $("#"+id+"-header"+" i").removeClass("hidden");
+            } else {
+                $("#"+id+"-header"+" .status").html(message);
+                $("#"+id+"-header"+" i").addClass("hidden");
+            }
+         };
+         
+         $( "#time-selector" ).change(function() {
+             $( "#time-selector option:selected" ).each(function() {
+                 $("#timeframe").html(this.value);
+                 query.data.timeframe = JSON.parse(this.value);
+               });
+           });
+         
+         $("#run").click(function() {
+          // running query
+             setStatus("sql", true, "Computing");
+             setStatus("json", true, "Computing");
+             setStatus("viz", true, "Computing");
+             
+             bouquet.request(query)
+             .then(function(res) {
+                 setStatus("json", false, "");
+                 $('#json').html(JSON.stringify(res.result, undefined, 4));
+             })
+             .catch(function(err) {
+                 console.error(err);
+             });
+             
+             var vizQuery = jQuery.extend(true, {}, query);
+             vizQuery.path += "?envelope=data&data=RECORDS";
+             bouquet.request(vizQuery)
+             .then(function(res) {
+                 setStatus("viz", false, "");
+                 displayChart(transformData(res));
+             })
+             .catch(function(err) {
+                 console.error(err);
+             });
+             
+             
+             var sqlQuery = jQuery.extend(true, {}, query);
+             sqlQuery.path += "?data=SQL";
+             bouquet.request(sqlQuery)
+             .then(function(res) {
+                 setStatus("sql", false, "");
+                 $('#sql').html(res.result);
+             })
+             .catch(function(err) {
+                 console.error(err);
+             });
+             
+         });
+        
+        
+         var query = {
+                 path : "/analytics/@'5899bc6715abcc6bed69d766'"
+                      + ".@bookmark:'58a5dc6b45d778b2bdb231c9'/query",
+                 data : {
+                     timeframe: [
+                         "2008-01-01",
+                         "2008-12-31"
+                     ],
+                     domain: "'Sales'",
+                     groupBy: [
+                         "MONTHLY('Saletime') as 'saletime'"
+                     ],
+                     metrics: [
+                         "'Total quantity sold'",
+                         "'Total available tickets'-'Total quantity sold' as 'Total unsold'"
+                     ],
+                     orderBy: [
+                         "desc('Total quantity sold')",
+                         "DESC('% sold')"
+                     ],
+                     limit: 1000
+                 }
+             }
+        
+        var bouquet = new Bouquet({
+            url : '//demo.openbouquet.io/release/v4.2',
+            clientId : 'api-key-client',
+            apiKey : 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhcGkta2V5LWNsaWVudCIsInN1YiI6IjU4YWM1Y2FiMTVhYmNjMTJiYjUwYTU0MCIsInVzZXJFbWFpbCI6ImRlbW9AbG9jYWxob3N0LmNvbSIsImN1c3RvbWVySWQiOiI1OGFjNTNjMDE1YWJjYzEyYmI1MGE0NWIiLCJqdGkiOiJnTmF3dHdiZzRaYXRtQ1JXVVRQYnFnIiwiZXhwIjo0NjQxNTM0NTE5LCJpYXQiOjE0ODc5MzQ1MTksIm5iZiI6MTQ4NzkzNDM5OX0.g5f1DHxESj9PvC5meP8UKXmcZzbGZIiW-qwZ7mNAZWTlMlaAdIn1EBOZzB9oAwHzQxS0qez0iRDac874YCmnHrwYI8kgVoJQvbbJedKIJjfP_V_ZPvMiAfsX0wqeCmqG4_uXZoAh_sumvyDkKGfzutAfpR3DCVkWTqfYZ-iornkyYwH89Yqe_yBNQPO4pXpf3Dg68BlruZqc-tiow3ytynyxuEYEOPYIuyRL-fLpjNstRGa_gXIQYBx9v1yVGlZsQFVviJ5PMbCgIduM36g5leA_IXprw46KxjH_snbnEvAHypZCwhNaJJxlLGBEWTMnFKqytR68CGURskRM2D0VPQ'
+        });
+        
+        
+        
+
+        // HighCharts display function
+        function displayChart(data) {
+
+            if (!Highcharts.theme) {
+                Highcharts.setOptions({
+                    colors : [ '#00505b', '#00aa9e', '#c74150', '#ff7c46',
+                            '#ffcb4d' ]
+                });
+            }
+
+            Highcharts.chart('viz', {
+                chart : {
+                    type : 'area',
+                    height : 180,
+                    backgroundColor: '#eee'
+                },
+
+                title : {
+                    text : 'TIckets sold by event category'
+                },
+
+                subtitle : {
+                    text : 'Tickit database'
+                },
+                xAxis : {
+                    type : 'datetime',
+                    units : [ [ 'month' ] ]
+                },
+                yAxis : {
+                    title : {
+                        text : 'Total quantity sold'
+                    }
+                },
+                tooltip : {
+                    split : true
+                },
+                legend : {
+                    layout : 'vertical',
+                    align : 'right',
+                    verticalAlign : 'middle',
+                    name : 'event category'
+                },
+                plotOptions : {
+                    area : {
+                        stacking : 'normal',
+                        lineColor : '#444444',
+                        lineWidth : 1,
+                        marker : {
+                            enabled : false,
+                            symbol : 'circle',
+                            radius : 2,
+                            states : {
+                                hover : {
+                                    enabled : true
+                                }
+                            }
+                        }
+                    }
+                },
+
+                series : data
+
+            });
+        }
+
+        // convert table data to HighCharts series
+        function transformData(data) {
+            var lookup = [];
+            data.forEach(function(record) {
+                if (lookup[record.series] === undefined) {
+                    lookup[record.series] = {
+                        name : record.series,
+                        data : [],
+                        total : 0
+                    };
+                }
+                var date = Date.parse(record.period);
+                lookup[record.series].data.push({
+                    x : date,
+                    y : record["Total quantity sold"]
+                });
+                lookup[record.series].total += record["Total quantity sold"];
+            });
+            var series = [];
+            for ( var key in lookup) {
+                series.push(lookup[key]);
+            }
+            ;
+            series.sort(function(a, b) {
+                return a.total - b.total
+            });
+            return series;
+        }
+
+
+    </script>
+
+</body>
