@@ -44,6 +44,7 @@ body {
     overflow: auto;
     background: #eee;
     border: none;
+    font-size: smaller;
 }
 
 
@@ -72,21 +73,21 @@ body {
   <a id="run" class="btn btn-success"><i class="fa fa-play"></i> run</a>
 </form>
 				<pre class="prettyprint" id="code">
+								
 var query = {
     path : "/analytics/@'5899bc6715abcc6bed69d766'.@bookmark:'58a5dc6b45d778b2bdb231c9'/query",
     data : {
         timeframe: <span id="timeframe">["2008-01-01","2008-12-31"]</span>,
-        domain: "'Sales'",
-        groupBy: [
-        "MONTHLY('Saletime') as 'saletime'"
+        domain:"'Sales'",
+        groupBy:[
+          "to_date(__PERIOD) as 'period'",
+          "'Event >  Category >  Catname' as 'series'"
         ],
-        metrics: [
-        "'Total quantity sold'",
-        "'Total available tickets'-'Total quantity sold' as 'Remaining tickets'"
+        metrics:[
+          "'Total quantity sold'"
         ],
-        orderBy: [
-        "desc('Total quantity sold')",
-        "DESC('% sold')"
+        orderBy:[
+          "asc(to_date(__PERIOD))"
         ],
         limit: 1000
     }
@@ -205,25 +206,33 @@ bouquet.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(respo
          var query = {
                  path : "/analytics/@'5899bc6715abcc6bed69d766'"
                       + ".@bookmark:'58a5dc6b45d778b2bdb231c9'/query",
-                 data : {
-                     timeframe: [
-                         "2008-01-01",
-                         "2008-12-31"
-                     ],
-                     domain: "'Sales'",
-                     groupBy: [
-                         "MONTHLY('Saletime') as 'saletime'"
-                     ],
-                     metrics: [
-                         "'Total quantity sold'",
-                         "'Total available tickets'-'Total quantity sold' as 'Total unsold'"
-                     ],
-                     orderBy: [
-                         "desc('Total quantity sold')",
-                         "DESC('% sold')"
-                     ],
-                     limit: 1000
-                 }
+                 data :{
+                         "period":"'Saletime'",
+                         "timeframe":[
+                           "2008-01-01",
+                           "2008-03-31"
+                         ],
+                         "filters":[
+
+                         ],
+                         "domain":"'Sales'",
+                         "groupBy":[
+                           "to_date(__PERIOD) as 'period'",
+                           "'Event >  Category >  Catname' as 'series'"
+                         ],
+                         "metrics":[
+                           "'Total quantity sold'"
+                         ],
+                         "orderBy":[
+                           "asc(to_date(__PERIOD))"
+                         ],
+                         "limit":1000,
+                         "beyondLimit":[
+                           "0"
+                         ],
+                         "style":"HUMAN",
+                         "queryID":"51740060f490741d388a42deea8105887aa7a1ca3bad90a4a1b9745f13d27c73"
+                       }
              }
         
         var bouquet = new Bouquet({
@@ -296,7 +305,6 @@ bouquet.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(respo
                 },
 
                 series : data
-
             });
         }
 
