@@ -42,6 +42,7 @@ export default class Bouquet {
         }
         this.config = options;
         this.uri = new URI( options.url );
+        this._authPromise = null;
     }
     
     _buildRequestUrl(access_token, query) {
@@ -118,7 +119,11 @@ export default class Bouquet {
 
     // request a new OAuth2 token
     requestToken( callback ) {
-        return this._doRequest( null, '/rs/token', callback );
+        // check if no auth already in progress
+        if (!this._authPromise) {
+            this._authPromise = this._doRequest( null, '/rs/token', callback );
+        }
+        return this._authPromise;
     }
 
     /* 

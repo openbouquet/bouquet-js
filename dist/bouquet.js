@@ -5194,7 +5194,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 module.exports = {
 	"name": "bouquet-js",
-	"version": "1.3.0",
+	"version": "1.4.0",
 	"description": "Universal Javascript library for Bouquet API",
 	"main": "dist/bouquet.js",
 	"scripts": {
@@ -7436,6 +7436,7 @@ var Bouquet = function () {
         }
         this.config = options;
         this.uri = new _urijs2.default(options.url);
+        this._authPromise = null;
     }
 
     _createClass(Bouquet, [{
@@ -7518,7 +7519,11 @@ var Bouquet = function () {
     }, {
         key: 'requestToken',
         value: function requestToken(callback) {
-            return this._doRequest(null, '/rs/token', callback);
+            // check if no auth already in progress
+            if (!this._authPromise) {
+                this._authPromise = this._doRequest(null, '/rs/token', callback);
+            }
+            return this._authPromise;
         }
 
         /* 
