@@ -1,0 +1,76 @@
+<html>
+<head>
+<script src='../dist/bouquet.js'></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/URI.js/1.18.10/URI.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body>
+	<h1>Example of authentication using bouquet.js</h1>
+	<p>
+	Bouquet Server URL (apiUrl) <br> 
+	<b id="apiUrl"></b>
+	<p>
+	Client Id (clientId) <br> 
+	<b id="clientId"></b>
+	</p>
+	<div id='root'> </div>
+	
+	<script>
+	$(function() {
+	    
+		// process query parameters parameter
+		var uri = new URI();
+		var apiUrl = uri.query(true).apiUrl;
+		if (!apiUrl) {
+		    apiUrl = "//demo.openbouquet.io/release/v4.2";
+		}
+		$("#apiUrl").html(apiUrl);
+		var clientId = uri.query(true).clientId;
+		   if (!clientId) {
+		       clientId = "ob1";
+		   }
+		   $("#clientId").html(clientId);
+		var code = uri.query(true).code;
+		 
+		 // create a new Bouquet client
+	    var bouquet = new Bouquet({
+	        url : apiUrl,
+	        clientId : clientId,
+	        code : code
+	    });
+	    
+	    document.getElementById('root').innerHTML = "Connecting...";
+	    // step 1
+	    bouquet.request("/rs/user")
+	    .then(function(user) {
+	        var html = "Connected with user : "+user.email;
+	        html += " <a href='https://cloud.openbouquet.io#logout'>Logout</a>"
+	        document.getElementById('root').innerHTML = html;
+	    })
+	    .catch(function(err) {
+	        if (err.body) {
+	            if (err.body.loginURL) {
+	                // get bouquet server teamId
+	                bouquet.request("/rs/status")
+	                .then(function(status) {
+	                    var loginUrl = new URI(err.body.loginURL);
+	                    loginUrl.setQuery("client_id",bouquet.config.clientId);
+	                    loginUrl.setQuery("redirect_uri", window.location.href);
+	                    loginUrl.setQuery("teamId", status.teamId);
+	                    document.getElementById('root').innerHTML = "<a href='"+loginUrl.toString()+"'>Please Sign-In</a>";
+	                })
+	                .catch(function(err) {
+	                    document.getElementById('root').innerHTML = "Failed to connect: "+err;
+	                });
+	            } else {
+	                document.getElementById('root').innerHTML = "Authentication failed: "+err.body.error;
+	            }
+	        } else {
+	            document.getElementById('root').innerHTML = "Authentication failed: "+err;
+	        }
+	    }); 
+	});
+	</script>
+</body>
+</html>

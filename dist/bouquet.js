@@ -5194,7 +5194,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 module.exports = {
 	"name": "bouquet-js",
-	"version": "1.4.0",
+	"version": "1.5.0",
 	"description": "Universal Javascript library for Bouquet API",
 	"main": "dist/bouquet.js",
 	"scripts": {
@@ -7431,9 +7431,6 @@ var Bouquet = function () {
         if (!options.clientId) {
             throw new Error('Parameter "clientId" is required');
         }
-        if (!options.apiKey && !options.access_token) {
-            throw new Error('Either "apiKey" or "access_token" paremeter is required');
-        }
         this.config = options;
         this.uri = new _urijs2.default(options.url);
         this._authPromise = null;
@@ -7465,8 +7462,10 @@ var Bouquet = function () {
             }
             if (access_token) {
                 url.setQuery('access_token', access_token);
-            } else {
+            } else if (this.config.apiKey) {
                 url.setQuery('assertion', this.config.apiKey);
+            } else if (this.config.code) {
+                url.setQuery('code', this.config.code);
             }
             url.setQuery('clientId', this.config.clientId);
             return url.toString();
@@ -7497,7 +7496,11 @@ var Bouquet = function () {
             if (!callback) {
                 // return as a promise
                 return promise.then(function (res) {
-                    return res.body;
+                    if (res.statusType() == 2) {
+                        return res.body;
+                    } else {
+                        throw res;
+                    }
                 });
             } else {
                 // return as callback
@@ -7528,9 +7531,13 @@ var Bouquet = function () {
 
         /* 
          * Perform an API request.
+         * This method will return a Promise. 
+         * This Promise argument will be with the response body as a json object if HTTP code is 2XX.
+         * If HTTP code isn't 2XX the response will by thrown as an error.
          * @param query a query defined either by 
          *  - a single string such as '/path?query'
          *  - a JSON object such as : { path : '', data : {} }
+         * @param a callback function to use instead of returning a Promise
          */
 
     }, {
@@ -7538,13 +7545,13 @@ var Bouquet = function () {
         value: function request(query, callback) {
             var _this = this;
 
-            if (this.config.access_token) {
-                return this._doRequest(this.config.access_token, query, callback);
-            } else {
+            if (this.config.apiKey || this.config.code) {
                 return this.requestToken().then(function (res) {
                     _this.config.access_token = res.access_token;
                     return _this._doRequest(_this.config.access_token, query, callback);
                 });
+            } else {
+                return this._doRequest(this.config.access_token, query, callback);
             }
         }
 

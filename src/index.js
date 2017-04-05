@@ -37,9 +37,6 @@ export default class Bouquet {
         if ( !options.clientId ) {
             throw new Error( 'Parameter "clientId" is required' );
         }
-        if ( ( !options.apiKey ) && ( !options.access_token ) ) {
-            throw new Error( 'Either "apiKey" or "access_token" paremeter is required' );
-        }
         this.config = options;
         this.uri = new URI( options.url );
         this._authPromise = null;
@@ -69,8 +66,10 @@ export default class Bouquet {
         }
         if ( access_token ) {
             url.setQuery( 'access_token', access_token );
-        } else {
+        } else if ( this.config.apiKey ) {
             url.setQuery( 'assertion', this.config.apiKey );
+        } else if ( this.config.code ) {
+            url.setQuery( 'code', this.config.code );
         }
         url.setQuery( 'clientId', this.config.clientId );
         return url.toString();
@@ -100,7 +99,11 @@ export default class Bouquet {
         if ( !callback ) {
             // return as a promise
             return promise.then( function( res ) {
-                return res.body;
+                if (res.statusType() == 2) {
+                    return res.body;
+                } else {
+                    throw res;
+                }
             });
         } else {
             // return as callback
@@ -128,20 +131,24 @@ export default class Bouquet {
 
     /* 
      * Perform an API request.
+     * This method will return a Promise. 
+     * This Promise argument will be with the response body as a json object if HTTP code is 2XX.
+     * If HTTP code isn't 2XX the response will by thrown as an error.
      * @param query a query defined either by 
      *  - a single string such as '/path?query'
      *  - a JSON object such as : { path : '', data : {} }
+     * @param a callback function to use instead of returning a Promise
      */
     request( query, callback ) {
-        if ( this.config.access_token ) {
-            return this._doRequest( this.config.access_token, query, callback );
-        } else {
+        if ( this.config.apiKey || this.config.code) {
             return this.requestToken().then(
                 (res) => {
                     this.config.access_token = res.access_token;
                     return this._doRequest( this.config.access_token, query, callback );
                 }
             );
+        } else {
+            return this._doRequest( this.config.access_token, query, callback );
         }
     }
     
