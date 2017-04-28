@@ -32,15 +32,15 @@ body {
 }
 
 #code {
-    height: 600px;
+    height: 800px;
     overflow: auto;
     background: #fff;
     border: none;
 }
 
 #sql, #viz, #json {
-    height: 200px;
-    max-height: 200px;
+    height: 600px;
+    max-height: 600px;
     overflow: auto;
     background: #eee;
     border: none;
@@ -169,8 +169,17 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
 				</div>
 			</div>
 			<div class="col-md-6">
-				<div class="row">
-					<div id="sql-header">
+			     
+  <ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#viz-header">Plotly</a></li>
+    <li><a data-toggle="tab" href="#json-header">JSON</a></li>
+    <li><a data-toggle="tab" href="#sql-header">SQL</a></li>
+  </ul>
+  
+  
+  <div class="tab-content">
+				<div id="sql-header" class="tab-pane fade">
+					<div >
 						<span class="header2">API Request 1</span>  SQL <i
 							class="fa fa-refresh fa-spin fa-fw hidden"></i> <span
 							class="status"></span>
@@ -178,8 +187,8 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
 					<pre class="prettyprint" id="sql">
 					</pre>
 				</div>
-				<div class="row">
-					<div id="json-header">
+				<div id="json-header" class="tab-pane fade">
+					<div>
 						<span class="header2">API Request 2</span>  JSON <i
 							class="fa fa-refresh fa-spin fa-fw hidden"></i> <span
 							class="status"></span>
@@ -187,14 +196,15 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
 					<pre class="prettyprint" id="json">
 					</pre>
 				</div>
-				<div class="row">
-					<div id="viz-header">
+				<div id="viz-header" class="tab-pane fade in active">
+					<div>
 						<span class="header2">API Request 3</span>  Chart <i
 							class="fa fa-refresh fa-spin fa-fw hidden"></i> <span
 							class="status"></span>
 					</div>
 					<div id="viz"></div>
 				</div>
+			</div>
 			</div>
 		</div>
 	</div>
