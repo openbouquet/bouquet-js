@@ -130,7 +130,6 @@ var query = {
     path : "/analytics/@'5899bc6715abcc6bed69d766'.@bookmark:'58a5dc6b45d778b2bdb231c9'/query",
     data : {
         timeframe: <span id="timeframe">["2008-01-01","2008-12-31"]</span>,
-        domain:"'Sales'",
         groupBy:[
           "DAILY(__PERIOD) as 'period'",
           "'Event >  Category >  Catname' as 'series'"
@@ -301,7 +300,6 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
                          "filters":[
 
                          ],
-                         "domain":"'Sales'",
                          "groupBy":[
                            "to_date(__PERIOD) as 'period'",
                            "'Event >  Category >  Catname' as 'series'"
