@@ -2,7 +2,6 @@
 
 <head>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://use.fontawesome.com/1ea8d4d975.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
@@ -97,7 +96,7 @@ pre .str {
     Going further
     </h3>
     <p> 
-    For the sake of simplicity, only Bouquet relevant code is shown here. To view the full version, check it <a href="https://github.com/openbouquet/bouquet-js/tree/master/examples/example-highcharts2.html" target="_blank">here</a>. 
+    For the sake of simplicity, only Bouquet relevant code is shown here. To view the full version, check it <a href="https://github.com/openbouquet/bouquet-js/tree/master/examples/example-plotly.html" target="_blank">here</a>. 
     </p>
     <p> 
     To learn more about Bouquet check the <a href="https://docs.openbouquet.io/docs/welcome">API documentation</a> and <a href="https://openbouquet.io/bouquet-download/">give Bouquet a try</a>! 
@@ -203,7 +202,7 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
 
 	<script>
         /*
-         demo using Bouquet analytics API with HighCharts to display data distribution by event category.
+         demo using Bouquet analytics API with Plotly to display data distribution by event category.
          */
          
          $("[data-toggle=popover]").popover({
@@ -315,7 +314,7 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
             apiKey : 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhcGkta2V5LWNsaWVudCIsInN1YiI6IjU4YWM1Y2FiMTVhYmNjMTJiYjUwYTU0MCIsInVzZXJFbWFpbCI6ImRlbW9AbG9jYWxob3N0LmNvbSIsImN1c3RvbWVySWQiOiI1OGFjNTNjMDE1YWJjYzEyYmI1MGE0NWIiLCJqdGkiOiJnTmF3dHdiZzRaYXRtQ1JXVVRQYnFnIiwiZXhwIjo0NjQxNTM0NTE5LCJpYXQiOjE0ODc5MzQ1MTksIm5iZiI6MTQ4NzkzNDM5OX0.g5f1DHxESj9PvC5meP8UKXmcZzbGZIiW-qwZ7mNAZWTlMlaAdIn1EBOZzB9oAwHzQxS0qez0iRDac874YCmnHrwYI8kgVoJQvbbJedKIJjfP_V_ZPvMiAfsX0wqeCmqG4_uXZoAh_sumvyDkKGfzutAfpR3DCVkWTqfYZ-iornkyYwH89Yqe_yBNQPO4pXpf3Dg68BlruZqc-tiow3ytynyxuEYEOPYIuyRL-fLpjNstRGa_gXIQYBx9v1yVGlZsQFVviJ5PMbCgIduM36g5leA_IXprw46KxjH_snbnEvAHypZCwhNaJJxlLGBEWTMnFKqytR68CGURskRM2D0VPQ'
         });
 
-        // HighCharts display function
+        // PLotly display function
         function displayChart(data) {
         	Plotly.newPlot('viz', data);
         }
