@@ -251,7 +251,7 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
              });
              
              var vizQuery = jQuery.extend(true, {}, query);
-             vizQuery.path += "?envelope=data&data=RECORDS";
+             vizQuery.path += "?envelope=DATA&data=TABLE";
              bouquet.request(vizQuery)
              .then(function(res) {
                  setStatus("viz", false, "");
@@ -278,7 +278,7 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
         
          var query = {
                  path : "/analytics/@'5899bc6715abcc6bed69d766'"
-                      + ".@bookmark:'58a5dc6b45d778b2bdb231c9'/query?data=TABLE&envelope=DATA",
+                      + ".@bookmark:'58a5dc6b45d778b2bdb231c9'/query",
                  data :{
                          "period":"'Saletime'",
                          "timeframe":[
@@ -302,9 +302,7 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
                          "limit":1000,
                          "beyondLimit":[
                            "0"
-                         ],
-                         "style":"HUMAN",
-                         "queryID":"51740060f490741d388a42deea8105887aa7a1ca3bad90a4a1b9745f13d27c73"
+                         ]
                        }
              }
         
