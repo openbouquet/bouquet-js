@@ -7542,18 +7542,39 @@ var Bouquet = function () {
          * @param query a query defined either by 
          *  - a single string such as '/path?query'
          *  - a JSON object such as : { path : '', data : {} }
+         * @param parameters an optional JSON object containing extra parameters to be added to the query url e.g. {envelope : 'data',data : 'RECORDS'}
          * @param a callback function to use instead of returning a Promise
          */
 
     }, {
         key: 'request',
-        value: function request(query, callback) {
+        value: function request(query, parameters, callback) {
             var _this = this;
 
             if (this.config.apiKey || this.config.code) {
                 return this.requestToken().then(function (res) {
                     _this.config.access_token = res.access_token;
-                    return _this._doRequest(_this.config.access_token, query, callback);
+                    if (parameters) {
+                        var path = void 0;
+                        var data = void 0;
+                        if ((typeof query === 'undefined' ? 'undefined' : _typeof(query)) === 'object') {
+                            var pathURI = new _urijs2.default(query.path);
+                            for (var q in parameters) {
+                                pathURI.setQuery(q, parameters[q]);
+                            }
+                            var newQuery = jQuery.extend(true, {}, query);
+                            newQuery.path = pathURI.toString();
+                            return _this._doRequest(_this.config.access_token, newQuery, callback);
+                        } else {
+                            var _pathURI = new _urijs2.default(query);
+                            for (var q in parameters) {
+                                _pathURI.setQuery(q, parameters[q]);
+                            }
+                            return _this._doRequest(_this.config.access_token, _pathURI.toString(), callback);
+                        }
+                    } else {
+                        return _this._doRequest(_this.config.access_token, query, callback);
+                    }
                 });
             } else {
                 return this._doRequest(this.config.access_token, query, callback);

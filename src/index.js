@@ -128,7 +128,7 @@ export default class Bouquet {
         }
         return this._authPromise;
     }
-
+    
     /* 
      * Perform an API request.
      * This method will return a Promise. 
@@ -137,14 +137,35 @@ export default class Bouquet {
      * @param query a query defined either by 
      *  - a single string such as '/path?query'
      *  - a JSON object such as : { path : '', data : {} }
+     * @param parameters an optional JSON object containing extra parameters to be added to the query url e.g. {envelope : 'data',data : 'RECORDS'}
      * @param a callback function to use instead of returning a Promise
      */
-    request( query, callback ) {
+    request( query, parameters, callback ) {
         if ( this.config.apiKey || this.config.code) {
             return this.requestToken().then(
                 (res) => {
                     this.config.access_token = res.access_token;
-                    return this._doRequest( this.config.access_token, query, callback );
+                    if (parameters) {
+                        let path;
+                        let data;
+                        if ( typeof query === 'object' ) {
+                            let pathURI = new URI( query.path );
+                            for ( var q in parameters ) {
+                                pathURI.setQuery( q, parameters[q] );
+                            }
+                            let newQuery = jQuery.extend(true, {}, query);
+                            newQuery.path = pathURI.toString();
+                            return this._doRequest( this.config.access_token, newQuery, callback );
+                        } else {
+                            let pathURI = new URI( query );
+                            for ( var q in parameters ) {
+                                pathURI.setQuery( q, parameters[q] );
+                            }
+                            return this._doRequest( this.config.access_token, pathURI.toString(), callback );
+                        }
+                    } else {
+                        return this._doRequest( this.config.access_token, query, callback );
+                    }
                 }
             );
         } else {
