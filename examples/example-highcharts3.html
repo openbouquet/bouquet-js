@@ -2,12 +2,13 @@
 
 <head>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://use.fontawesome.com/1ea8d4d975.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
 <script src='../dist/bouquet.js'></script>
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <style>
 
@@ -32,17 +33,17 @@ body {
 }
 
 #code {
-    height: 800px;
+    height: 600px;
     overflow: auto;
-    background: white;
+    background: #fff;
     border: none;
 }
 
 #sql, #viz, #json {
-    height: 800px;
-    max-height: 800px;
+    height: 200px;
+    max-height: 200px;
     overflow: auto;
-    background: white;
+    background: #eee;
     border: none;
     font-size: smaller;
 }
@@ -96,7 +97,7 @@ pre .str {
     Going further
     </h3>
     <p> 
-    For the sake of simplicity, only Bouquet relevant code is shown here. To view the full version, check it <a href="https://github.com/openbouquet/bouquet-js/tree/master/examples/example-plotly.html" target="_blank">here</a>. 
+    For the sake of simplicity, only Bouquet relevant code is shown here. To view the full version, check it <a href="https://github.com/openbouquet/bouquet-js/tree/master/examples/example-highcharts2.html" target="_blank">here</a>. 
     </p>
     <p> 
     To learn more about Bouquet check the <a href="https://docs.openbouquet.io/docs/welcome">API documentation</a> and <a href="https://openbouquet.io/bouquet-download/">give Bouquet a try</a>! 
@@ -130,15 +131,16 @@ var query = {
     path : "/analytics/@'5899bc6715abcc6bed69d766'.@bookmark:'58a5dc6b45d778b2bdb231c9'/query",
     data : {
         timeframe: <span id="timeframe">["2008-01-01","2008-12-31"]</span>,
+        domain:"'Sales'",
         groupBy:[
-          "DAILY(__PERIOD) as 'period'",
+          "to_date(__PERIOD) as 'period'",
           "'Event >  Category >  Catname' as 'series'"
         ],
         metrics:[
           "'Total quantity sold'"
         ],
         orderBy:[
-          "asc(DAILY(__PERIOD))"
+          "asc(to_date(__PERIOD))"
         ],
         limit: 1000
     }
@@ -168,17 +170,8 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
 				</div>
 			</div>
 			<div class="col-md-6">
-			     
-  <ul class="nav nav-tabs">
-    <li class="active"><a data-toggle="tab" href="#viz-header">Plotly</a></li>
-    <li><a data-toggle="tab" href="#json-header">JSON</a></li>
-    <li><a data-toggle="tab" href="#sql-header">SQL</a></li>
-  </ul>
-  
-  
-  <div class="tab-content">
-				<div id="sql-header" class="tab-pane fade">
-					<div >
+				<div class="row">
+					<div id="sql-header">
 						<span class="header2">API Request 1</span>  SQL <i
 							class="fa fa-refresh fa-spin fa-fw hidden"></i> <span
 							class="status"></span>
@@ -186,8 +179,8 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
 					<pre class="prettyprint" id="sql">
 					</pre>
 				</div>
-				<div id="json-header" class="tab-pane fade">
-					<div>
+				<div class="row">
+					<div id="json-header">
 						<span class="header2">API Request 2</span>  JSON <i
 							class="fa fa-refresh fa-spin fa-fw hidden"></i> <span
 							class="status"></span>
@@ -195,8 +188,8 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
 					<pre class="prettyprint" id="json">
 					</pre>
 				</div>
-				<div id="viz-header" class="tab-pane fade in active">
-					<div>
+				<div class="row">
+					<div id="viz-header">
 						<span class="header2">API Request 3</span>  Chart <i
 							class="fa fa-refresh fa-spin fa-fw hidden"></i> <span
 							class="status"></span>
@@ -204,14 +197,13 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
 					<div id="viz"></div>
 				</div>
 			</div>
-			</div>
 		</div>
 	</div>
 
 
 	<script>
         /*
-         demo using Bouquet analytics API with Plotly to display data distribution by event category.
+         demo using Bouquet analytics API with HighCharts to display data distribution by event category.
          */
          
          $("[data-toggle=popover]").popover({
@@ -249,21 +241,7 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
              setStatus("sql", true, "Computing");
              setStatus("json", true, "Computing");
              setStatus("viz", true, "Computing");
-
-
-             var startDate = Date.now();
-             var vizQuery = jQuery.extend(true, {}, query);
-             vizQuery.path += "?envelope=DATA&data=TABLE";
-             bouquet.request(vizQuery)
-             .then(function(res) {
-                 var elapsed = Date.now() - startDate;
-                 setStatus("viz", false, " (took "+elapsed+" ms.)");
-                 displayChart(transformData(res));
-             })
-             .catch(function(err) {
-                 console.error(err);
-             });
-
+             
              bouquet.request(query)
              .then(function(res) {
                  setStatus("json", false, "");
@@ -273,10 +251,16 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
                  console.error(err);
              });
              
+             bouquet.request(query, {envelope : 'data',data : 'RECORDS'})
+             .then(function(res) {
+                 setStatus("viz", false, "");
+                 displayChart(transformData(res));
+             })
+             .catch(function(err) {
+                 console.error(err);
+             });
              
-             var sqlQuery = jQuery.extend(true, {}, query);
-             sqlQuery.path += "?data=SQL";
-             bouquet.request(sqlQuery)
+             bouquet.request(query, {data : 'SQL'})
              .then(function(res) {
                  setStatus("sql", false, "");
                  $('#sql').html(res.result);
@@ -295,11 +279,12 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
                          "period":"'Saletime'",
                          "timeframe":[
                            "2008-01-01",
-                           "2008-12-31"
+                           "2008-03-31"
                          ],
                          "filters":[
 
                          ],
+                         "domain":"'Sales'",
                          "groupBy":[
                            "to_date(__PERIOD) as 'period'",
                            "'Event >  Category >  Catname' as 'series'"
@@ -313,7 +298,9 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
                          "limit":1000,
                          "beyondLimit":[
                            "0"
-                         ]
+                         ],
+                         "style":"HUMAN",
+                         "queryID":"51740060f490741d388a42deea8105887aa7a1ca3bad90a4a1b9745f13d27c73"
                        }
              }
         
@@ -323,37 +310,98 @@ bouquetAPI.request(query, {envelope : 'data',data : 'RECORDS'}).then(function(re
             apiKey : 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJhcGkta2V5LWNsaWVudCIsInN1YiI6IjU4YWM1Y2FiMTVhYmNjMTJiYjUwYTU0MCIsInVzZXJFbWFpbCI6ImRlbW9AbG9jYWxob3N0LmNvbSIsImN1c3RvbWVySWQiOiI1OGFjNTNjMDE1YWJjYzEyYmI1MGE0NWIiLCJqdGkiOiJnTmF3dHdiZzRaYXRtQ1JXVVRQYnFnIiwiZXhwIjo0NjQxNTM0NTE5LCJpYXQiOjE0ODc5MzQ1MTksIm5iZiI6MTQ4NzkzNDM5OX0.g5f1DHxESj9PvC5meP8UKXmcZzbGZIiW-qwZ7mNAZWTlMlaAdIn1EBOZzB9oAwHzQxS0qez0iRDac874YCmnHrwYI8kgVoJQvbbJedKIJjfP_V_ZPvMiAfsX0wqeCmqG4_uXZoAh_sumvyDkKGfzutAfpR3DCVkWTqfYZ-iornkyYwH89Yqe_yBNQPO4pXpf3Dg68BlruZqc-tiow3ytynyxuEYEOPYIuyRL-fLpjNstRGa_gXIQYBx9v1yVGlZsQFVviJ5PMbCgIduM36g5leA_IXprw46KxjH_snbnEvAHypZCwhNaJJxlLGBEWTMnFKqytR68CGURskRM2D0VPQ'
         });
 
-         // authenticate
-         bouquet.request("/rs/user").then(function(res) {
-            console.log("logged as "+res.login);
-         });
-
-        // PLotly display function
+        // HighCharts display function
         function displayChart(data) {
-        	Plotly.newPlot('viz', data);
+
+            if (!Highcharts.theme) {
+                Highcharts.setOptions({
+                    colors : [ '#00505b', '#00aa9e', '#c74150', '#ff7c46',
+                            '#ffcb4d' ]
+                });
+            }
+
+            Highcharts.chart('viz', {
+                chart : {
+                    type : 'area',
+                    height : 180,
+                    backgroundColor: '#eee'
+                },
+
+                title : {
+                    text : 'TIckets sold by event category'
+                },
+
+                subtitle : {
+                    text : 'Tickit database'
+                },
+                xAxis : {
+                    type : 'datetime',
+                    units : [ [ 'month' ] ]
+                },
+                yAxis : {
+                    title : {
+                        text : 'Total quantity sold'
+                    }
+                },
+                tooltip : {
+                    split : true
+                },
+                legend : {
+                    layout : 'vertical',
+                    align : 'right',
+                    verticalAlign : 'middle',
+                    name : 'event category'
+                },
+                plotOptions : {
+                    area : {
+                        stacking : 'normal',
+                        lineColor : '#444444',
+                        lineWidth : 1,
+                        marker : {
+                            enabled : false,
+                            symbol : 'circle',
+                            radius : 2,
+                            states : {
+                                hover : {
+                                    enabled : true
+                                }
+                            }
+                        }
+                    }
+                },
+
+                series : data
+            });
         }
 
-        // convert table data to Plotly series
-		function transformData(rows) {
-		    var lookup = [];
-		  rows.forEach(function (record) {
-		    var series = record[1];
-		    if (lookup[series]===undefined) {
-		        lookup[series] = {name:series, x:[], y:[], total:0, mode: 'lines',
-		  type: 'scatter',fill:'tonexty'};
-		    }
-		    var date = record[0];
-		    lookup[series].x.push(date);
-		    lookup[series].y.push(record[2]);
-		    lookup[series].total += record[2];
-		  });
-		  var data = [];
-		  for (var key in lookup) {
-		    data.push(lookup[key]);
-		  };
-		  data.sort(function (a,b) {return a.total-b.total});
-		  return data;
-		}
+        // convert table data to HighCharts series
+        function transformData(data) {
+            var lookup = [];
+            data.forEach(function(record) {
+                if (lookup[record.series] === undefined) {
+                    lookup[record.series] = {
+                        name : record.series,
+                        data : [],
+                        total : 0
+                    };
+                }
+                var date = Date.parse(record.period);
+                lookup[record.series].data.push({
+                    x : date,
+                    y : record["Total quantity sold"]
+                });
+                lookup[record.series].total += record["Total quantity sold"];
+            });
+            var series = [];
+            for ( var key in lookup) {
+                series.push(lookup[key]);
+            }
+            ;
+            series.sort(function(a, b) {
+                return a.total - b.total
+            });
+            return series;
+        }
 
 
     </script>
