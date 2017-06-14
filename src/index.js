@@ -26,7 +26,7 @@ import URI from 'urijs';
 import pack from '../package.json';
 require('es6-promise').polyfill();
 require('es6-object-assign').polyfill();
-const popsicle = require('popsicle');
+const superagent = require('superagent');
 
 export default class Bouquet {
     constructor( options ) {
@@ -82,24 +82,24 @@ export default class Bouquet {
         if ( typeof query === 'object' ) {
             data = query.data;
         }
+        
         if ( data ) {
             // POST
             url = this._buildRequestUrl(access_token, { path : query.path });
-            promise = popsicle.post( {
-                url: url,
-                body: data
-            });
+            promise = superagent.post(url)
+            .set('Content-Type', 'application/json')
+            .send(data);
         } else {
             // GET
-            url = this._buildRequestUrl(access_token, query);
-            promise = popsicle.get(url);
+            url = this._buildRequestUrl(access_token, query);            
+            promise = superagent.get(url).accept('application/json');
         }
-        promise = promise.use(popsicle.plugins.parse('json'));
         
         if ( !callback ) {
             // return as a promise
             return promise.then( function( res ) {
-                if (res.statusType() == 2) {
+                console.log(res.statusType);
+                if (res.statusType === 2) {
                     return res.body;
                 } else {
                     throw res;
