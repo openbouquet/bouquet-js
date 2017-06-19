@@ -22,13 +22,13 @@
  * See http://www.squidsolutions.com/EnterpriseBouquet/
  */
 
-import URI from 'urijs';
-import pack from '../package.json';
+const URI  = require('urijs');
+const pack = require('../package.json');
 require('es6-promise').polyfill();
 require('es6-object-assign').polyfill();
-const superagent = require('superagent');
+const popsicle = require('popsicle');
 
-export default class Bouquet {
+class Bouquet {
     constructor( options ) {
         options = options || {};
         if ( !options.url ) {
@@ -86,20 +86,21 @@ export default class Bouquet {
         if ( data ) {
             // POST
             url = this._buildRequestUrl(access_token, { path : query.path });
-            promise = superagent.post(url)
-            .set('Content-Type', 'application/json')
-            .send(data);
+            promise = popsicle.post( {
+                url: url,
+                body: data
+            });
         } else {
             // GET
             url = this._buildRequestUrl(access_token, query);            
-            promise = superagent.get(url).accept('application/json');
+            promise = popsicle.get(url);
         }
+        promise = promise.use(popsicle.plugins.parse('json'));
         
         if ( !callback ) {
             // return as a promise
             return promise.then( function( res ) {
-                console.log(res.statusType);
-                if (res.statusType === 2) {
+                if (res.statusType() == 2) {
                     return res.body;
                 } else {
                     throw res;
@@ -195,3 +196,6 @@ export default class Bouquet {
         }
     }
 }
+
+module.exports = Bouquet;
+

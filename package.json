@@ -1,8 +1,8 @@
 {
   "name": "bouquet-js",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Universal Javascript library for Bouquet API",
-  "main": "dist/bouquet.js",
+  "main": "src/index.js",
   "scripts": {
     "build": "webpack --env build",
     "dev": "webpack --progress --colors --watch --env dev",
@@ -12,7 +12,7 @@
   "dependencies": {
     "es6-object-assign": "^1.1.0",
     "es6-promise": "^4.1.0",
-    "superagent": "^3.5.2",
+    "popsicle": "^9.1.0",
     "urijs": "^1.18.9"
   },
   "devDependencies": {
