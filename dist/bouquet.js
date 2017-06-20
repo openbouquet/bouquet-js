@@ -5199,7 +5199,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 module.exports = {
 	"name": "bouquet-js",
-	"version": "1.8.0",
+	"version": "1.9.0",
 	"description": "Universal Javascript library for Bouquet API",
 	"main": "src/index.js",
 	"scripts": {
@@ -7437,7 +7437,7 @@ var Bouquet = function () {
 
     _createClass(Bouquet, [{
         key: '_buildRequestUrl',
-        value: function _buildRequestUrl(access_token, query) {
+        value: function _buildRequestUrl(query, addAuthorization) {
             var url = this.uri.clone();
             var path = void 0;
             var data = void 0;
@@ -7459,38 +7459,64 @@ var Bouquet = function () {
             if (data) {
                 url.addQuery(data);
             }
-            if (access_token) {
-                url.setQuery('access_token', access_token);
-            } else if (this.config.apiKey) {
-                url.setQuery('assertion', this.config.apiKey);
-            } else if (this.config.code) {
+            if (this.config.code) {
                 url.setQuery('code', this.config.code);
+            }
+            if (addAuthorization === true) {
+                if (this.config.access_token) {
+                    url.setQuery('access_token', this.config.access_token);
+                } else {
+                    if (this.config.apiKey) {
+                        url.setQuery('api_key', this.config.apiKey);
+                    }
+                }
             }
             url.setQuery('clientId', this.config.clientId);
             return url.toString();
         }
     }, {
         key: '_doRequest',
-        value: function _doRequest(access_token, query, callback) {
-            var url = void 0;
-            var promise = void 0;
-            var data = void 0;
+        value: function _doRequest(query, callback) {
+            var url = void 0,
+                promise = void 0,
+                data = void 0,
+                req = void 0,
+                authorization = void 0;
             if ((typeof query === 'undefined' ? 'undefined' : _typeof(query)) === 'object') {
                 data = query.data;
             }
 
             if (data) {
                 // POST
-                url = this._buildRequestUrl(access_token, { path: query.path });
-                promise = popsicle.post({
+                url = this._buildRequestUrl({ path: query.path });
+                req = {
+                    method: 'POST',
                     url: url,
                     body: data
-                });
+                };
             } else {
                 // GET
-                url = this._buildRequestUrl(access_token, query);
-                promise = popsicle.get(url);
+                url = this._buildRequestUrl(query);
+                req = {
+                    method: 'GET',
+                    url: url
+                };
             }
+
+            if (this.config.access_token) {
+                authorization = 'Bearer ' + this.config.access_token;
+            } else {
+                if (this.config.apiKey) {
+                    authorization = 'ApiKey ' + this.config.apiKey;
+                }
+            }
+
+            if (authorization) {
+                req.headers = {
+                    'Authorization': authorization
+                };
+            };
+            promise = popsicle.request(req);
             promise = promise.use(popsicle.plugins.parse('json'));
 
             if (!callback) {
@@ -7524,7 +7550,7 @@ var Bouquet = function () {
         value: function requestToken(callback) {
             // check if no auth already in progress
             if (!this._authPromise) {
-                this._authPromise = this._doRequest(null, '/rs/token', callback);
+                this._authPromise = this._doRequest('/rs/token', callback);
             }
             return this._authPromise;
         }
@@ -7546,7 +7572,8 @@ var Bouquet = function () {
         value: function request(query, parameters, callback) {
             var _this = this;
 
-            if (this.config.apiKey || this.config.code) {
+            if (this.config.code) {
+                // auth_code flow
                 return this.requestToken().then(function (res) {
                     _this.config.access_token = res.access_token;
                     if (parameters) {
@@ -7559,20 +7586,24 @@ var Bouquet = function () {
                             }
                             var newQuery = jQuery.extend(true, {}, query);
                             newQuery.path = pathURI.toString();
-                            return _this._doRequest(_this.config.access_token, newQuery, callback);
+                            return _this._doRequest(newQuery, callback);
                         } else {
                             var _pathURI = new URI(query);
                             for (var q in parameters) {
                                 _pathURI.setQuery(q, parameters[q]);
                             }
-                            return _this._doRequest(_this.config.access_token, _pathURI.toString(), callback);
+                            return _this._doRequest(_pathURI.toString(), callback);
                         }
                     } else {
-                        return _this._doRequest(_this.config.access_token, query, callback);
+                        return _this._doRequest(query, callback);
                     }
                 });
             } else {
-                return this._doRequest(this.config.access_token, query, callback);
+                if (this.config.apiKey) {
+                    return this._doRequest(query, callback);
+                } else {
+                    return this._doRequest(query, callback);
+                }
             }
         }
 
@@ -7585,18 +7616,18 @@ var Bouquet = function () {
 
     }, {
         key: 'getRequestUrl',
-        value: function getRequestUrl(query, callback) {
+        value: function getRequestUrl(query) {
             var _this2 = this;
 
             if (this.config.access_token) {
                 return new Promise(function (resolve) {
-                    var url = _this2._buildRequestUrl(_this2.config.access_token, query, callback);
+                    var url = _this2._buildRequestUrl(query, true);
                     resolve(url);
                 });
             } else {
                 return this.requestToken().then(function (res) {
                     _this2.config.access_token = res.access_token;
-                    return _this2._buildRequestUrl(_this2.config.access_token, query, callback);
+                    return _this2._buildRequestUrl(query, true);
                 });
             }
         }
