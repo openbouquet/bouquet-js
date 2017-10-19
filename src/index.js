@@ -24,6 +24,7 @@
 
 const URI  = require('urijs');
 const pack = require('../package.json');
+const crypto = require('crypto');
 require('es6-promise').polyfill();
 require('es6-object-assign').polyfill();
 const popsicle = require('popsicle');
@@ -81,25 +82,29 @@ class Bouquet {
     }
 
     _doRequest(query, callback ) {
-        let url, promise, data, req, authorization;
+        let url, promise, data, req, authorization, stringToHash;
         if ( typeof query === 'object' ) {
             data = query.data;
         }
-        
+
         if ( data ) {
             // POST
             url = this._buildRequestUrl({ path : query.path });
+            stringToHash = query.path + '/';
             req = {
                     method: 'POST',
                     url: url,
-                    body: data
+                    body: data,
+                    header: {}
             };
         } else {
             // GET
-            url = this._buildRequestUrl(query);            
+            url = this._buildRequestUrl(query);
+            stringToHash = url;
             req = {
                     method: 'GET',
-                    url: url
+                    url: url,
+                    header: {}
             };
         }
         
@@ -107,14 +112,17 @@ class Bouquet {
             authorization = 'Bearer '+ this.config.access_token;
         } else {
             if (this.config.apiKey) {
-                authorization = 'ApiKey '+ this.config.apiKey ;
+                authorization = 'ApiKey '+ this.config.apiKey;
             }
-        } 
+        }
+
+        if (this.config.secret) {
+            const signature = crypto.createHmac('sha1', this.config.secret).update(stringToHash).digest('hex');
+            req.header.Signature = signature;
+        }
 
         if (authorization) {
-            req.headers = {
-                    'Authorization': authorization
-            };
+            req.headers.Authorization = authorization;
         };
         promise = popsicle.request(req);
         promise = promise.use(popsicle.plugins.parse('json'));
