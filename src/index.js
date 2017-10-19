@@ -95,7 +95,7 @@ class Bouquet {
                     method: 'POST',
                     url: url,
                     body: data,
-                    header: {}
+                    headers: {}
             };
         } else {
             // GET
@@ -104,7 +104,7 @@ class Bouquet {
             req = {
                     method: 'GET',
                     url: url,
-                    header: {}
+                    headers: {}
             };
         }
         
@@ -118,7 +118,7 @@ class Bouquet {
 
         if (this.config.secret) {
             const signature = crypto.createHmac('sha1', this.config.secret).update(stringToHash).digest('hex');
-            req.header.Signature = signature;
+            req.headers.Signature = signature;
         }
 
         if (authorization) {
