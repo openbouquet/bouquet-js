@@ -22,13 +22,14 @@
  * See http://www.squidsolutions.com/EnterpriseBouquet/
  */
 
-import URI from 'urijs';
-import pack from '../package.json';
+const URI  = require('urijs');
+const pack = require('../package.json');
+const crypto = require('crypto');
 require('es6-promise').polyfill();
 require('es6-object-assign').polyfill();
 const popsicle = require('popsicle');
 
-export default class Bouquet {
+class Bouquet {
     constructor( options ) {
         options = options || {};
         if ( !options.url ) {
@@ -42,7 +43,7 @@ export default class Bouquet {
         this._authPromise = null;
     }
     
-    _buildRequestUrl(access_token, query) {
+    _buildRequestUrl(query, addAuthorization) {
         let url = this.uri.clone();
         let path;
         let data;
@@ -64,36 +65,65 @@ export default class Bouquet {
         if (data) {
             url.addQuery(data);
         }
-        if ( access_token ) {
-            url.setQuery( 'access_token', access_token );
-        } else if ( this.config.apiKey ) {
-            url.setQuery( 'assertion', this.config.apiKey );
-        } else if ( this.config.code ) {
+        if ( this.config.code ) {
             url.setQuery( 'code', this.config.code );
+        }
+        if (addAuthorization === true) {
+            if (this.config.access_token) {
+                url.setQuery( 'access_token', this.config.access_token );
+            } else {
+                if (this.config.apiKey) {
+                    url.setQuery( 'api_key', this.config.apiKey );
+                }
+            }
         }
         url.setQuery( 'clientId', this.config.clientId );
         return url.toString();
     }
 
-    _doRequest( access_token, query, callback ) {
-        let url;
-        let promise;
-        let data;
+    _doRequest(query, callback ) {
+        let url, promise, data, req, authorization, stringToHash;
         if ( typeof query === 'object' ) {
             data = query.data;
         }
+
         if ( data ) {
             // POST
-            url = this._buildRequestUrl(access_token, { path : query.path });
-            promise = popsicle.post( {
-                url: url,
-                body: data
-            });
+            url = this._buildRequestUrl({ path : query.path });
+            req = {
+                    method: 'POST',
+                    url: url,
+                    body: data,
+                    headers: {}
+            };
         } else {
             // GET
-            url = this._buildRequestUrl(access_token, query);
-            promise = popsicle.get(url);
+            url = this._buildRequestUrl(query);
+            req = {
+                    method: 'GET',
+                    url: url,
+                    headers: {}
+            };
         }
+        stringToHash = url;
+        
+        if (this.config.access_token) {
+            authorization = 'Bearer '+ this.config.access_token;
+        } else {
+            if (this.config.apiKey) {
+                authorization = 'ApiKey '+ this.config.apiKey;
+            }
+        }
+
+        if (this.config.secret) {
+            const signature = crypto.createHmac('sha1', this.config.secret).update(stringToHash).digest('hex');
+            req.headers.Signature = signature;
+        }
+
+        if (authorization) {
+            req.headers.Authorization = authorization;
+        };
+        promise = popsicle.request(req);
         promise = promise.use(popsicle.plugins.parse('json'));
         
         if ( !callback ) {
@@ -124,7 +154,7 @@ export default class Bouquet {
     requestToken( callback ) {
         // check if no auth already in progress
         if (!this._authPromise) {
-            this._authPromise = this._doRequest( null, '/rs/token', callback );
+            this._authPromise = this._doRequest( '/rs/token', callback );
         }
         return this._authPromise;
     }
@@ -141,7 +171,8 @@ export default class Bouquet {
      * @param a callback function to use instead of returning a Promise
      */
     request( query, parameters, callback ) {
-        if ( this.config.apiKey || this.config.code) {
+        if (this.config.code) {
+            // auth_code flow
             return this.requestToken().then(
                 (res) => {
                     this.config.access_token = res.access_token;
@@ -155,21 +186,25 @@ export default class Bouquet {
                             }
                             let newQuery = jQuery.extend(true, {}, query);
                             newQuery.path = pathURI.toString();
-                            return this._doRequest( this.config.access_token, newQuery, callback );
+                            return this._doRequest(newQuery, callback );
                         } else {
                             let pathURI = new URI( query );
                             for ( var q in parameters ) {
                                 pathURI.setQuery( q, parameters[q] );
                             }
-                            return this._doRequest( this.config.access_token, pathURI.toString(), callback );
+                            return this._doRequest(pathURI.toString(), callback );
                         }
                     } else {
-                        return this._doRequest( this.config.access_token, query, callback );
+                        return this._doRequest(query, callback );
                     }
                 }
             );
         } else {
-            return this._doRequest( this.config.access_token, query, callback );
+            if (this.config.apiKey) {
+                return this._doRequest(query, callback );
+            } else {
+                return this._doRequest(query, callback );
+            }
         }
     }
     
@@ -179,19 +214,22 @@ export default class Bouquet {
      *  - a single string such as '/path?query'
      *  - a JSON object such as : { path : '', data : {} }
      */
-    getRequestUrl( query, callback ) {
+    getRequestUrl( query) {
         if ( this.config.access_token ) {
             return new Promise((resolve) => {
-                let url = this._buildRequestUrl( this.config.access_token, query, callback );
+                let url = this._buildRequestUrl( query, true);
                 resolve(url);
             });
         } else {
             return this.requestToken().then(
                 (res) => {
                     this.config.access_token = res.access_token;
-                    return this._buildRequestUrl( this.config.access_token, query, callback );
+                    return this._buildRequestUrl( query, true);
                 }
             );
         }
     }
 }
+
+module.exports = Bouquet;
+
