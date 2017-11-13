@@ -90,7 +90,6 @@ class Bouquet {
         if ( data ) {
             // POST
             url = this._buildRequestUrl({ path : query.path });
-            stringToHash = query.path + '/';
             req = {
                     method: 'POST',
                     url: url,
@@ -100,13 +99,13 @@ class Bouquet {
         } else {
             // GET
             url = this._buildRequestUrl(query);
-            stringToHash = url;
             req = {
                     method: 'GET',
                     url: url,
                     headers: {}
             };
         }
+        stringToHash = url;
         
         if (this.config.access_token) {
             authorization = 'Bearer '+ this.config.access_token;

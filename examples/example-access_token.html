@@ -1,0 +1,26 @@
+<html>
+<head>
+<script src='../dist/bouquet.js'></script>
+</head>
+<body>
+    <p>Simple example running an analysis from a query URI and using bouquet.js</p>
+	analysis :
+	<pre id='root'> </pre>
+	<script>
+	   var bouquet = new Bouquet({
+	       url : 'http://192.168.200.152:8080/release/v4.2',
+	       clientId : 'ob1',
+	       secret : '83054c94-99eb-4b30-ac72-6734d2c05f51',
+	       access_token: '9ec0f2ca-861f-4601-b37b-8712d3a4be86'
+	   });
+	   document.getElementById('root').innerHTML = "RUNNING...";
+	   bouquet.request("/rs/tokeninfo")
+	   .then(function(res) {
+	       document.getElementById('root').innerHTML = JSON.stringify(res.result, undefined, 4);
+	   })
+	   .catch(function(err) {
+	       document.getElementById('root').innerHTML = err;
+	   });
+	</script>
+</body>
+</html>
