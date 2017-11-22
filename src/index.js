@@ -41,9 +41,9 @@ class Bouquet {
         this.config = options;
         this.uri = new URI( options.url );
         this._authPromise = null;
-        if (this.config.secret && this.config.secret !== null) {
-        	this.mac = crypto.createHmac('sha1', this.config.secret);
-        }
+        // if (this.config.secret && this.config.secret !== null) {
+        // 	this.mac = crypto.createHmac('sha1', this.config.secret);
+        // }
     }
     
     _buildRequestUrl(query, addAuthorization) {
@@ -119,7 +119,7 @@ class Bouquet {
         }
 
         if (this.config.secret) {
-            const signature = this.mac.update(stringToHash).digest('hex');
+            const signature = crypto.createHmac('sha1', this.config.secret).update(stringToHash).digest('hex');
             req.headers.Signature = signature;
         }
 
