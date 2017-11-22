@@ -126,6 +126,10 @@ class Bouquet {
         if (authorization) {
             req.headers.Authorization = authorization;
         };
+
+        // Quick fix to ignore missing certificate
+
+        req.transport = popsicle.createTransport({ rejectUnauthorized: false })        
         promise = popsicle.request(req);
         promise = promise.use(popsicle.plugins.parse('json'));
         
