@@ -120,7 +120,7 @@ class Bouquet {
 
         if (this.config.secret) {
             const signature = this.mac.update(stringToHash).digest('hex');
-            req.headers.Signature = signature;
+            req.headers.OBSSignature = signature;
         }
 
         if (authorization) {

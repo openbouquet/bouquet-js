@@ -17591,7 +17591,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 module.exports = {
 	"name": "bouquet-js",
-	"version": "1.11.0",
+	"version": "1.11.2",
 	"description": "Universal Javascript library for Bouquet API",
 	"main": "src/index.js",
 	"scripts": {
@@ -29919,7 +29919,7 @@ var Bouquet = function () {
 
             if (this.config.secret) {
                 var signature = this.mac.update(stringToHash).digest('hex');
-                req.headers.Signature = signature;
+                req.headers.OBSSignature = signature;
             }
 
             if (authorization) {
